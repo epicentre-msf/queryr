@@ -1,0 +1,24 @@
+Package: queryr
+Title: Data Validation Queries With Tidy Output
+Version: 0.1.0
+Authors@R: c(
+    person(
+      "Patrick", "Barks",
+      email = "patrick.barks@epicentre.msf.org",
+      role = c("aut", "cre")
+    )
+  )
+Description: Data validation queries with tidy, stackable output.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.0
+Depends: 
+    R (>= 2.10)
+Imports:
+    dplyr,
+    rlang,
+    tidyr
+Suggests: 
+    testthat
