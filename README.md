@@ -26,22 +26,14 @@ Load package and examine example dataset `ll`, an epidemiological
 ``` r
 library(queryr)
 data(ll)
-ll
-#>      id site age age_unit     status date_onset date_admit   date_lab lab_result  date_exit   outcome
-#> 1  M143    A  14    Years Not a case 2020-03-30 2020-04-01 2020-04-01   Negative 2024-04-02 Sent home
-#> 2  M932    B  61    Years  Confirmed 2020-04-01 2020-04-02 2020-04-01   Positive 2020-04-24      Died
-#> 3  M345    B   8   Months  Suspected 2024-04-03 2020-04-05       <NA>   Positive 2020-04-19      <NA>
-#> 4  N104    A  29    Years  Suspected 2020-03-16 2020-04-03 2020-03-12       <NA> 2020-03-11      <NA>
-#> 5  M623    C  91      Yrs  Confirmed 2020-04-10 2020-04-12 2020-03-12       Inc. 2020-04-30     Cured
-#> 6  M685    C  10    Weeks Not a case       <NA>       <NA> 2020-03-25   Negative 2010-03-26 Sent home
-#> 7  M361    B  68    Years  Confirmed 2020-03-20 2020-03-25 2020-03-26   Positive 2020-04-02     Cured
-#> 8  M550    B  39     <NA>   Probable 2020-04-25 2020-04-30 2020-05-01   Positive 2010-05-13     Other
-#> 9   190    A  66    Years Not a case 2020-04-24 2020-05-01 2020-05-02   Negative 2020-05-03      <NA>
-#> 10 M443    C  10    Years       <NA> 2020-03-06 2020-03-10       <NA>       <NA> 2030-04-05 Sent home
-#> 11 M206    A  43    Years Not a case 2020-03-31 2020-04-02 2020-04-04   Negative 2020-04-27 Sent home
-#> 12 M701    C  56    Years Not a case 2020-03-17 2020-03-20 2020-03-21   Negative 2020-04-05 Sent home
-#> 13 M112    B  18    Years  Confirmed 2020-02-26 2020-03-01 2020-03-01   Positive 2020-03-15      Died
-#> 14 M457    A   2   Months  Suspected 2020-04-06 2020-04-10 2040-04-12       Inc. 2020-03-19      Died
+head(ll)
+#>     id site age age_unit     status date_onset date_admit   date_lab lab_result  date_exit   outcome
+#> 1 M143    A  14    Years Not a case 2020-03-30 2020-04-01 2020-04-01   Negative 2024-04-02 Sent home
+#> 2 M932    B  61    Years  Confirmed 2020-04-01 2020-04-02 2020-04-01   Positive 2020-04-24      Died
+#> 3 M345    B   8   Months  Suspected 2024-04-03 2020-04-05       <NA>   Positive 2020-04-19      <NA>
+#> 4 N104    A  29    Years  Suspected 2020-03-16 2020-04-03 2020-03-12       <NA> 2020-03-11      <NA>
+#> 5 M623    C  91      Yrs  Confirmed 2020-04-10 2020-04-12 2020-03-12       Inc. 2020-04-30     Cured
+#> 6 M685    C  10    Weeks Not a case       <NA>       <NA> 2020-03-25   Negative 2010-03-26 Sent home
 ```
 
 ### Example queries
@@ -61,7 +53,7 @@ Note that by default the columns referenced in the query expression are
 pivoted to long-format (`variable1`, `value1`, `variable2`, `value2`,
 …), to enable stacking multiple queries on different variables. The
 optional `cols_base` argument can be used to specify additional columns
-to retain in the output (specified via
+to retain in the output (via
 [tidy-selection](https://tidyselect.r-lib.org/reference/select_helpers.html)).
 
 **E.g. 2.** Find any date value in the future using a `.x` selector
@@ -79,7 +71,7 @@ query(ll, .x > Sys.Date(), cols_dotx = starts_with("date"), cols_base = id:site)
 #> 4 M443    C  date_exit 2030-04-05
 ```
 
-**E.g. 3.** Find values of `age_unit` outside the set of valid values.
+**E.g. 3.** Find non-valid values of `age_unit`.
 
 ``` r
 age_unit_valid <- c("Years", "Months", "Weeks", "Days")
