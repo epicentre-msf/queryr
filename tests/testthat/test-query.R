@@ -52,4 +52,5 @@ test_that("query works as expected", {
   options(queryr_cols_base = quote(id:site))
   q12 <- query(ll, date_exit < date_admit)
   expect_true(all(c("id", "site") %in% names(q12)))
+  options(queryr_cols_base = NULL) # reset option queryr_cols_base to NULL
 })
