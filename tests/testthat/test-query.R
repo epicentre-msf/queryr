@@ -2,6 +2,10 @@ test_that("query works as expected", {
 
   data(ll)
 
+  # ensure option queryr_cols_base NULL prior to running tests
+  queryr_cols_base_orig <- getOption("queryr_cols_base")
+  options(queryr_cols_base = NULL)
+
   # test basic query
   q1 <- query(ll, date_exit < date_admit)
   expect_is(q1, "data.frame")
@@ -52,5 +56,7 @@ test_that("query works as expected", {
   options(queryr_cols_base = quote(id:site))
   q12 <- query(ll, date_exit < date_admit)
   expect_true(all(c("id", "site") %in% names(q12)))
-  options(queryr_cols_base = NULL) # reset option queryr_cols_base to NULL
+
+  # reset option queryr_cols_base to original value
+  options(queryr_cols_base = queryr_cols_base_orig)
 })
