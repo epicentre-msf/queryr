@@ -191,10 +191,10 @@ query <- function(data,
 }
 
 
+
 #' @noRd
 #' @importFrom dplyr select
 #' @importFrom rlang `!!` enquo
-#' @importFrom tidyr pivot_longer
 query_ <- function(x,
                    cond,
                    cols_base,
@@ -228,16 +228,7 @@ query_ <- function(x,
 
   # convert variables within query expression to long-form
   if (pivot_long) {
-    for (i in seq_along(vars_cond)) {
-      name_var <- paste0(pivot_var, i)
-      name_val <- paste0(pivot_val, i)
-      out <- tidyr::pivot_longer(
-        out,
-        cols = vars_cond[i],
-        names_to = name_var,
-        values_to = name_val
-      )
-    }
+    out <- pivot_simple(out, pivot_var, pivot_val)
   }
 
   # append base variables
@@ -256,6 +247,30 @@ query_ <- function(x,
   row.names(out) <- NULL
 
   return(out)
+}
+
+
+
+#' @noRd
+#' @importFrom stats setNames
+pivot_simple <- function(df,
+                         pivot_var,
+                         pivot_val) {
+
+  vars <- names(df)
+
+  names_var <- paste0(pivot_var, seq_along(vars))
+  names_val <- paste0(pivot_val, seq_along(vars))
+  column_order <- c(rbind(names_var, names_val))
+
+  df_vals <- setNames(df, names_val)
+
+  df_vars <- as.data.frame(
+    lapply(setNames(vars, names_var), rep, times = nrow(df)),
+    stringsAsFactors = FALSE
+  )
+
+  cbind(df_vals, df_vars)[,column_order, drop = FALSE]
 }
 
 
