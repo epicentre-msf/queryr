@@ -106,7 +106,7 @@
 #'   cols_base = id:site,
 #' )
 #'
-#' @importFrom dplyr select all_of bind_rows group_by_all count ungroup
+#' @importFrom dplyr select bind_rows group_by_all count ungroup
 #' @importFrom rlang `!!` enquo
 #' @export query
 query <- function(data,
@@ -121,6 +121,7 @@ query <- function(data,
                   as_chr = TRUE,
                   count = FALSE) {
 
+  # set arg cols_base
   opt_cols_base <- getOption("queryr_cols_base")
 
   if (missing(cols_base) & !is.null(opt_cols_base)) {
@@ -129,22 +130,30 @@ query <- function(data,
 
   cols_base <- enquo(cols_base)
 
+
   if (!missing(cols_dotx)) {
+    ## if query expression uses .x selector
 
-    cols_dotx <- enquo(cols_dotx)
-    vars_data <- names(dplyr::select(data, !!cols_dotx))
-    out <- list()
+    # evaluate cols_dotx
+    cols_dotx <- names(dplyr::select(data, !!enquo(cols_dotx)))
 
-    for (i in seq_along(vars_data)) {
+    # prep query expression for substition of each cols_dotx into .x
+    cond_base <- as.expression(substitute(cond))[[1]]
 
-      var <- str2lang(vars_data[i])
-      cond_swap <- as.expression(substitute(cond))
-      cond_swap <- do.call("substitute", list(cond_swap[[1]], list(.x = var)))
-      cond_swap <- deparse(cond_swap)
+    # run separate sub-query for each variable in cols_dotx
+    subqueries <- list()
 
-      out[[i]] <- query_helper(
+    for (i in seq_along(cols_dotx)) {
+
+      # substitute cols_dotx[i] with .x
+      cond_swap <- do.call(
+        "substitute",
+        list(cond_base, list(.x = str2lang(cols_dotx[i])))
+      )
+
+      subqueries[[i]] <- query_(
         data,
-        cond = cond_swap,
+        cond = deparse(cond_swap),
         cols_base = cols_base,
         qcol = qcol,
         qval = qval,
@@ -155,15 +164,14 @@ query <- function(data,
       )
     }
 
-    out <- dplyr::bind_rows(out)
+    out <- dplyr::bind_rows(subqueries)
 
   } else {
+    ## else no .x selector
 
-    cond <- deparse(substitute(cond))
-
-    out <- query_helper(
+    out <- query_(
       data,
-      cond = cond,
+      cond = deparse(substitute(cond)),
       cols_base = cols_base,
       qcol = qcol,
       qval = qval,
@@ -174,6 +182,7 @@ query <- function(data,
     )
   }
 
+  # summarize by counting unique combinations across all variables
   if (count) {
     out <- ungroup(count(group_by_all(out)))
   }
@@ -183,36 +192,41 @@ query <- function(data,
 
 
 #' @noRd
-#' @importFrom dplyr select all_of
+#' @importFrom dplyr select
 #' @importFrom rlang `!!` enquo
 #' @importFrom tidyr pivot_longer
-query_helper <- function(x,
-                         cond,
-                         cols_base,
-                         qcol,
-                         qval,
-                         as_chr,
-                         pivot_long,
-                         pivot_var,
-                         pivot_val) {
+query_ <- function(x,
+                   cond,
+                   cols_base,
+                   qcol,
+                   qval,
+                   as_chr,
+                   pivot_long,
+                   pivot_var,
+                   pivot_val) {
 
-  if (!is.call(substitute(cond))) cond <- parse(text = cond)
-  if (is.call(substitute(cols_base))) cols_base <- enquo(cols_base)
+  cond <- parse(text = cond)
 
-  vars_cond <- unique(intersect(all.vars(substitute(cond)), names(x)))
+  # parse query expression to find variable name also in `x`
+  vars_cond <- all.vars(substitute(cond))
+  vars_cond <- intersect(vars_cond, names(x))
 
+  # evaluate query expression
   rows <- eval(substitute(cond), x, parent.frame(n = 2))
   rows[is.na(rows)] <- FALSE
   xsub <- x[rows, , drop = FALSE]
 
-  out <- dplyr::select(xsub, all_of(vars_cond))
+  # limit to variables within query expression
+  out <- xsub[,vars_cond, drop = FALSE]
 
+  # convert variables within query expression to character
   if (as_chr) {
     for (j in vars_cond) {
       out[[j]] <- as.character(out[[j]])
     }
   }
 
+  # convert variables within query expression to long-form
   if (pivot_long) {
     for (i in seq_along(vars_cond)) {
       name_var <- paste0(pivot_var, i)
@@ -226,11 +240,13 @@ query_helper <- function(x,
     }
   }
 
+  # append base variables
   if (!missing(cols_base)) {
     out_id <- dplyr::select(xsub, !!cols_base)
     out <- dplyr::bind_cols(out_id, out)
   }
 
+  # append query ID column
   if (!is.null(qval)) {
     cols_orig <- names(out)
     out[[qcol]] <- rep(qval, nrow(out))
@@ -241,4 +257,5 @@ query_helper <- function(x,
 
   return(out)
 }
+
 
