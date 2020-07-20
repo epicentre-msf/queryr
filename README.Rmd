@@ -16,6 +16,8 @@ options(digits = 4, width = 120)
 # queryr: Data validation queries with tidy, stackable output
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
+[![Travis build status](https://travis-ci.com/epicentre-msf/queryr.svg?branch=master)](https://travis-ci.com/epicentre-msf/queryr)
+[![Codecov test coverage](https://codecov.io/gh/epicentre-msf/queryr/branch/master/graph/badge.svg)](https://codecov.io/gh/epicentre-msf/queryr?branch=master)
 <!-- badges: end -->
 
 ### Installation
@@ -53,7 +55,7 @@ argument can be used to specify additional columns to retain in the output (via
 
 **E.g. 2.** Find any date value in the future using a `.x` selector within the
 query expression to represent a set of multiple columns. The columns represented
-by `.x` are specified separately via tidy-selection with argument `cols_dotx`.
+by `.x` are specified separately with argument `cols_dotx`.
 
 ```{r}
 query(ll, .x > Sys.Date(), cols_dotx = starts_with("date"), cols_base = id:site)
@@ -78,16 +80,17 @@ options(queryr_cols_base = quote(id:site))
 
 # stack multiple queries
 dplyr::bind_rows(
-  # ID_01: non-valid patient id
-  query(ll, !grepl("^M[0-9]{3}", id), qval = "ID_01"),
-  # DATE_01: date in future
-  query(ll, .x > Sys.Date(), cols_dotx = starts_with("date"), qval = "DATE_01"),
-  # DATE_02: exit before admission
-  query(ll, date_exit < date_admit, qval = "DATE_02"),
-  # CATEGOR_01: non-valid value of age_unit
-  query(ll, !age_unit %in% age_unit_valid, qval = "CATEGOR_01"),
-  # LOGIC_01: status 'Confirmed' but lab result not 'Positive'
-  query(ll, status == "Confirmed" & !lab_result %in% "Positive", qval = "LOGIC_01")
+  .id = "query",
+  # non-valid patient id
+  "IDENT_01" = query(ll, !grepl("^M[0-9]{3}", id)),
+  # date in future
+  "DATES_01" = query(ll, .x > Sys.Date(), cols_dotx = starts_with("date")),
+  # exit before admission
+  "DATES_02" = query(ll, date_exit < date_admit),
+  # non-valid value of age_unit
+  "FCTRS_01" = query(ll, !age_unit %in% age_unit_valid),
+  # status 'Confirmed' but lab result not 'Positive'
+  "LOGIC_01" = query(ll, status == "Confirmed" & !lab_result %in% "Positive")
 )
 ```
 

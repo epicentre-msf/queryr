@@ -7,9 +7,12 @@
 #' is achieved by pivoting the columns indicated in the query expression to
 #' long-form, e.g. "variable1", "value1", "variable2", "value2", ...
 #'
-#' The query expression can optionally incorporate a "`.x`" selector to refer to
-#' a set of multiple variables, which is specified separately using
-#' tidy-selection (see section **Using a .x selector**).
+#' The query expression can optionally incorporate up to two dot-selectors
+#' ("`.x`" and "`.y`"), which each refer to a *set* of variables specified
+#' separately using tidy-selection (see section **Using a dot-selector**). If
+#' both selectors are used in a given query expression, the sets of variables
+#' they respectively match can either be "crossed" such that all combinations
+#' are evaluated, or evaluated in parallel.
 #'
 #' By default, only the data columns referenced in the query expression are
 #' returned, but additional columns can optionally be added with argument
@@ -17,19 +20,22 @@
 #'
 #' @param data A data frame
 #' @param cond An expression to evaluate with respect to variables within
-#'   `data`. Can specify multiple variables using a "`.x`" selector within the
-#'   expression (e.g. `.x > 0`) and then specifying the columns that `.x` refers
-#'   to with argument `cols_dotx`.
-#' @param cols_dotx Tidy-selection of one or more columns represented by a .x
-#'   selector. Only used if `cond` contains a .x selector. See section **Using a
-#'   .x selector** below.
+#'   `data`. Can specify multiple variables using a dot-selector ("`.x`" and
+#'   "`.y`") within the expression (e.g. `.x > 0`) and then separately
+#'   specifying the columns that the selector refers to with arguments
+#'   `cols_dotx`/`cols_doty`.
+#' @param cols_dotx,cols_doty Tidy-selection of one or more columns represented
+#'   by a .x or .y selector. Only used if `cond` contains the relevant selector.
+#'   See section **Using a dot-selector** below.
+#' @param crossed if `cond` contains both a .x and .y selector, should the
+#'   variables matched by `cols_dotx` and `cols_doty` be "crossed" such that all
+#'   combinations are evaluated (`TRUE`), or should they be evaluated in
+#'   parallel (`FALSE`). The latter requires that the number of variables
+#'   matched by `cols_dotx` and `cols_doty` is the same. Defaults to `FALSE`.
 #' @param cols_base (Optional) Tidy-selection of other columns within `data` to
 #'   retain in the output. Can optionally be set for an entire session using
 #'   option "queryr_cols_base", e.g. `options(queryr_cols_base =
 #'   quote(id:site))`.
-#' @param qcol (Optional) Name of query identifier column. Defaults to "query".
-#'   Only appended if argument `qval` is specified.
-#' @param qval (Optional) Value of query identifier column
 #' @param pivot_long Logical indicating whether to pivot the variables
 #'   referenced within `cond` to a long (i.e. stackable) format, with default
 #'   column names "variable1", "value1", "variable2", "value2", ... Defaults to
@@ -46,24 +52,50 @@
 #'   the number of unique combinations across all returned columns (with count
 #'   column "n"). Defaults to `FALSE`.
 #'
-#' @section Using a .x selector:
-#' A "`.x`" selector within the query expression `cond` represents a set of
-#' multiple variables, which are specified separately using argument
-#' `cols_dotx`. When `cond` contains a `.x` selector, the query expression is
-#' evaluated repeatedly with each relevant variable from `cols_dotx`
-#' individually substituted into the `.x` position of the expression. The
-#' results of these multiple 'subqueries' are then combined with
+#' @section Using a dot-selector:
+#' A query expression can optionally incorporate up to two dot-selectors
+#' ("`.x`" and "`.y`"), which each refer to a *set* of variables specified
+#' separately using tidy-selection (arguments `cols_dotx` and `cols_doty`).
+#'
+#' When `cond` contains a `.x` selector, the query expression is evaluated
+#' repeatedly with each relevant variable from `cols_dotx` individually
+#' substituted into the `.x` position of the expression. The results of these
+#' multiple 'subqueries' are then combined with
 #' \code{\link[dplyr:bind_rows]{dplyr::bind_rows}}.
 #'
-#' Note that if a .x selector is used with argument `pivot_long = FALSE`, the
-#' row-binding of multiple subqueries may result in a sparse output with
-#' respect to the variables represented by `.x`, because for each subquery only
-#' the columns matched by expression `cond` are returned.
+#' If `cond` contains both a .x and .y selector, the sets of variables matched
+#' by `cols_dotx` and `cols_doty` respectively can either be "crossed" such that
+#' all combinations are evaluated, or evaluated in parallel. Evaluating in
+#' parallel requires that the number of variables matched by `cols_dotx` and
+#' `cols_doty` is the same.
+#'
+#' Consider a hypothetical query checking that, if a patient has a particular
+#' symptom, the date of onset of that symptom is not missing. E.g. \cr
+#' `cond = .x == "Yes" & is.na(.y)` \cr
+#' `cols_dotx = c(symptom_fever, symptom_headache)` \cr
+#' `cols_doty = c(date_symptom_fever, date_symptom_headache)` \cr
+#'
+#' If argument `crossed` is `FALSE`, the relevant variables from `cols_dotx` and
+#' `cols_doty` will be evaluated in parallel, as in: \cr
+#' `has_symptom_fever == "Yes" & is.na(date_symptom_fever)` \cr
+#' `has_symptom_headache == "Yes" & is.na(date_symptom_headache)` \cr
+#'
+#' Conversely, if argument `crossed` is `TRUE`, all combinations of the relevant
+#' variables will be evaluated, which for this particular query wouldn't make
+#' sense: \cr
+#' `symptom_fever == "Yes" & is.na(date_symptom_fever)` \cr
+#' `symptom_fever == "Yes" & is.na(date_symptom_headache) # not relevant` \cr
+#' `symptom_headache == "Yes" & is.na(date_symptom_fever) # not relevant` \cr
+#' `symptom_headache == "Yes" & is.na(date_symptom_headache)` \cr
+#'
+#' Note that if a dot-selector is used with argument `pivot_long = FALSE`, the
+#' row-binding of multiple subqueries may result in a sparse output with respect
+#' to the variables represented by the dot-selector, because for each subquery
+#' only the columns matched by expression `cond` are returned.
 #'
 #' @return
 #' A data frame reflecting the rows of `data` that match the given query.
 #' Returned columns include:
-#' - (optional) query ID column `qcol` (if `qval` is specified)
 #' - (optional) columns matched by argument `cols_base`
 #' - columns referenced within the query expression (pivoted to long form by
 #'   default)
@@ -88,15 +120,6 @@
 #'   cols_base = id:site
 #' )
 #'
-#' # include a query identifier column in the output
-#' query(
-#'   ll,
-#'   .x > Sys.Date(),
-#'   cols_dotx = starts_with("date"),
-#'   cols_base = id:site,
-#'   qval = "DATES_01"
-#' )
-#'
 #' # incorporate an external object into the query expression
 #' valid_age_units <- c("Years", "Months", "Weeks", "Days")
 #'
@@ -112,16 +135,16 @@
 query <- function(data,
                   cond,
                   cols_dotx,
+                  cols_doty,
+                  crossed = FALSE,
                   cols_base,
-                  qcol = "query",
-                  qval = NULL,
                   pivot_long = TRUE,
                   pivot_var = "variable",
                   pivot_val = "value",
                   as_chr = TRUE,
                   count = FALSE) {
 
-  # set arg cols_base
+  ## set arg cols_base
   opt_cols_base <- getOption("queryr_cols_base")
 
   if (missing(cols_base) & !is.null(opt_cols_base)) {
@@ -130,14 +153,59 @@ query <- function(data,
 
   cols_base <- enquo(cols_base)
 
+  ## check for .x selector
+  has_dotx <- ".x" %in% all.vars(substitute(cond))
+  missing_cols_dotx <- missing(cols_dotx)
 
-  if (!missing(cols_dotx)) {
-    ## if query expression uses .x selector
+  if (has_dotx & missing_cols_dotx) {
+    stop("`cond` includes a .x selector but `cols_dotx` is missing", call. = FALSE)
+  } else if (!has_dotx & !missing_cols_dotx) {
+    warning("`cols_dotx` is specified but `cond` does not include a .x selector", call. = FALSE)
+  }
+
+  ## check for .y selector
+  has_doty <- ".y" %in% all.vars(substitute(cond))
+  missing_cols_doty <- missing(cols_doty)
+
+  if (has_doty & missing_cols_doty) {
+    stop("`cond` includes a .y selector but `cols_doty` is missing", call. = FALSE)
+  } else if (!has_doty & !missing_cols_doty) {
+    warning("`cols_doty` is specified but `cond` does not include a .y selector", call. = FALSE)
+  }
+
+  if (has_dotx) {
+    ## if query expression uses .x and/or .y selector
 
     # evaluate cols_dotx
     cols_dotx <- names(dplyr::select(data, !!enquo(cols_dotx)))
 
-    # prep query expression for substition of each cols_dotx into .x
+    if (has_doty) {
+      cols_doty <- names(dplyr::select(data, !!enquo(cols_doty)))
+
+      if (crossed) {
+        cols_exp <- expand.grid(
+          cols_doty = cols_doty,
+          cols_dotx = cols_dotx,
+          stringsAsFactors = FALSE
+        )
+        cols_dotx <- cols_exp$cols_dotx
+        cols_doty <- cols_exp$cols_doty
+
+      } else {
+        n_cols_dotx <- length(cols_dotx)
+        n_cols_doty <- length(cols_doty)
+
+        if (n_cols_dotx != n_cols_doty) {
+          stop("`crossed` is FALSE but the number of columns matched by ",
+               "`cols_dotx` (", n_cols_dotx, ") differs from the number ",
+               "matched by `cols_doty` (", n_cols_doty, ")", call. = FALSE)
+        }
+      }
+    } else {
+      cols_doty <- rep(".y", length(cols_dotx))
+    }
+
+    # prep query expression for substitution of each cols_dotx into .x
     cond_base <- as.expression(substitute(cond))[[1]]
 
     # run separate sub-query for each variable in cols_dotx
@@ -145,18 +213,19 @@ query <- function(data,
 
     for (i in seq_along(cols_dotx)) {
 
-      # substitute cols_dotx[i] with .x
+      # substitute cols_dotx[i] with .x and cols_doty[i] with .y
       cond_swap <- do.call(
         "substitute",
-        list(cond_base, list(.x = str2lang(cols_dotx[i])))
+        list(
+          cond_base,
+          list(.x = str2lang(cols_dotx[i]), .y = str2lang(cols_doty[i]))
+        )
       )
 
       subqueries[[i]] <- query_(
         data,
         cond = deparse(cond_swap),
         cols_base = cols_base,
-        qcol = qcol,
-        qval = qval,
         as_chr = as_chr,
         pivot_long = pivot_long,
         pivot_var = pivot_var,
@@ -173,8 +242,6 @@ query <- function(data,
       data,
       cond = deparse(substitute(cond)),
       cols_base = cols_base,
-      qcol = qcol,
-      qval = qval,
       as_chr = as_chr,
       pivot_long = pivot_long,
       pivot_var = pivot_var,
@@ -198,8 +265,6 @@ query <- function(data,
 query_ <- function(x,
                    cond,
                    cols_base,
-                   qcol,
-                   qval,
                    as_chr,
                    pivot_long,
                    pivot_var,
@@ -237,13 +302,6 @@ query_ <- function(x,
     out <- dplyr::bind_cols(out_id, out)
   }
 
-  # append query ID column
-  if (!is.null(qval)) {
-    cols_orig <- names(out)
-    out[[qcol]] <- rep(qval, nrow(out))
-    out <- out[,c(qcol, cols_orig), drop = FALSE]
-  }
-
   row.names(out) <- NULL
 
   return(out)
@@ -272,5 +330,3 @@ pivot_simple <- function(df,
 
   cbind(df_vals, df_vars)[,column_order, drop = FALSE]
 }
-
-

@@ -7,6 +7,10 @@
 
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
+[![Travis build
+status](https://travis-ci.com/epicentre-msf/queryr.svg?branch=master)](https://travis-ci.com/epicentre-msf/queryr)
+[![Codecov test
+coverage](https://codecov.io/gh/epicentre-msf/queryr/branch/master/graph/badge.svg)](https://codecov.io/gh/epicentre-msf/queryr?branch=master)
 <!-- badges: end -->
 
 ### Installation
@@ -58,8 +62,7 @@ to retain in the output (via
 
 **E.g. 2.** Find any date value in the future using a `.x` selector
 within the query expression to represent a set of multiple columns. The
-columns represented by `.x` are specified separately via tidy-selection
-with argument
+columns represented by `.x` are specified separately with argument
 `cols_dotx`.
 
 ``` r
@@ -93,28 +96,29 @@ options(queryr_cols_base = quote(id:site))
 
 # stack multiple queries
 dplyr::bind_rows(
-  # ID_01: non-valid patient id
-  query(ll, !grepl("^M[0-9]{3}", id), qval = "ID_01"),
-  # DATE_01: date in future
-  query(ll, .x > Sys.Date(), cols_dotx = starts_with("date"), qval = "DATE_01"),
-  # DATE_02: exit before admission
-  query(ll, date_exit < date_admit, qval = "DATE_02"),
-  # CATEGOR_01: non-valid value of age_unit
-  query(ll, !age_unit %in% age_unit_valid, qval = "CATEGOR_01"),
-  # LOGIC_01: status 'Confirmed' but lab result not 'Positive'
-  query(ll, status == "Confirmed" & !lab_result %in% "Positive", qval = "LOGIC_01")
+  .id = "query",
+  # non-valid patient id
+  "IDENT_01" = query(ll, !grepl("^M[0-9]{3}", id)),
+  # date in future
+  "DATES_01" = query(ll, .x > Sys.Date(), cols_dotx = starts_with("date")),
+  # exit before admission
+  "DATES_02" = query(ll, date_exit < date_admit),
+  # non-valid value of age_unit
+  "FCTRS_01" = query(ll, !age_unit %in% age_unit_valid),
+  # status 'Confirmed' but lab result not 'Positive'
+  "LOGIC_01" = query(ll, status == "Confirmed" & !lab_result %in% "Positive")
 )
-#>         query   id site  variable1     value1  variable2     value2
-#> 1       ID_01 N104    A         id       N104       <NA>       <NA>
-#> 2       ID_01  190    A         id        190       <NA>       <NA>
-#> 3     DATE_01 M345    B date_onset 2024-04-03       <NA>       <NA>
-#> 4     DATE_01 M457    A   date_lab 2040-04-12       <NA>       <NA>
-#> 5     DATE_01 M143    A  date_exit 2024-04-02       <NA>       <NA>
-#> 6     DATE_01 M443    C  date_exit 2030-04-05       <NA>       <NA>
-#> 7     DATE_02 N104    A  date_exit 2020-03-11 date_admit 2020-04-03
-#> 8     DATE_02 M550    B  date_exit 2010-05-13 date_admit 2020-04-30
-#> 9     DATE_02 M457    A  date_exit 2020-03-19 date_admit 2020-04-10
-#> 10 CATEGOR_01 M623    C   age_unit        Yrs       <NA>       <NA>
-#> 11 CATEGOR_01 M550    B   age_unit       <NA>       <NA>       <NA>
-#> 12   LOGIC_01 M623    C     status  Confirmed lab_result       Inc.
+#>       query   id site  variable1     value1  variable2     value2
+#> 1  IDENT_01 N104    A         id       N104       <NA>       <NA>
+#> 2  IDENT_01  190    A         id        190       <NA>       <NA>
+#> 3  DATES_01 M345    B date_onset 2024-04-03       <NA>       <NA>
+#> 4  DATES_01 M457    A   date_lab 2040-04-12       <NA>       <NA>
+#> 5  DATES_01 M143    A  date_exit 2024-04-02       <NA>       <NA>
+#> 6  DATES_01 M443    C  date_exit 2030-04-05       <NA>       <NA>
+#> 7  DATES_02 N104    A  date_exit 2020-03-11 date_admit 2020-04-03
+#> 8  DATES_02 M550    B  date_exit 2010-05-13 date_admit 2020-04-30
+#> 9  DATES_02 M457    A  date_exit 2020-03-19 date_admit 2020-04-10
+#> 10 FCTRS_01 M623    C   age_unit        Yrs       <NA>       <NA>
+#> 11 FCTRS_01 M550    B   age_unit       <NA>       <NA>       <NA>
+#> 12 LOGIC_01 M623    C     status  Confirmed lab_result       Inc.
 ```

@@ -23,9 +23,24 @@ test_that("query works as expected", {
   q4 <- query(ll, .x >= as.Date("2020-06-01"), cols_dotx = starts_with("date"))
   expect_true(length(unique(q4$variable1)) > 1L)
 
-  # test args qcol, qval
-  q5 <- query(ll, is.na(age_unit), qcol = "test", qval = "ABCD")
-  expect_true(all(q5$test == "ABCD"))
+
+  # test .x and .y selector
+  q5A <- query(
+    ll,
+    !is.na(.x) & is.na(.y),
+    cols_dotx = c(date_admit, date_exit),
+    cols_doty = c(status, outcome)
+  )
+  expect_true(length(unique(q5A$variable1)) > 1L)
+
+  q5B <- query(
+    ll,
+    !is.na(.x) & is.na(.y),
+    cols_dotx = c(date_admit, date_exit),
+    cols_doty = c(status, outcome),
+    crossed = TRUE
+  )
+  expect_gt(nrow(q5B), nrow(q5A))
 
   # test ref to external object within query expression
   age_unit_valid <- c("Years", "Months", "Weeks", "Days")
