@@ -292,7 +292,7 @@ query_ <- function(x,
   }
 
   # convert variables within query expression to long-form
-  if (pivot_long) {
+  if (pivot_long & length(vars_cond) > 0) {
     out <- pivot_simple(out, pivot_var, pivot_val)
   }
 
@@ -330,3 +330,4 @@ pivot_simple <- function(df,
 
   cbind(df_vals, df_vars)[,column_order, drop = FALSE]
 }
+
