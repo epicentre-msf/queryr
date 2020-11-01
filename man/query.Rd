@@ -152,11 +152,11 @@ query(
 )
 
 # incorporate an external object into the query expression
-valid_age_units <- c("Years", "Months", "Weeks", "Days")
+lab_result_valid <- c("Positive", "Negative", "Inc.", NA)
 
 query(
   ll,
-  !age_unit \%in\% valid_age_units,
+  !lab_result \%in\% lab_result_valid,
   cols_base = id:site,
 )
 

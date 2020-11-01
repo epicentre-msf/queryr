@@ -12,5 +12,8 @@ ll <- readxl::read_xlsx("data-raw/ll_example.xlsx") %>%
   mutate_if(is_posix, as.Date) %>%
   as.data.frame()
 
+sll <- readxl::read_xlsx("data-raw/sll_example.xlsx") %>%
+  mutate_if(is_posix, as.Date) %>%
+  as.data.frame()
 
-usethis::use_data(ll, overwrite = TRUE)
+usethis::use_data(ll, sll, overwrite = TRUE)

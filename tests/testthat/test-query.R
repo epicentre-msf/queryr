@@ -23,7 +23,6 @@ test_that("query works as expected", {
   q4 <- query(ll, .x >= as.Date("2020-06-01"), cols_dotx = starts_with("date"))
   expect_true(length(unique(q4$variable1)) > 1L)
 
-
   # test .x and .y selector
   q5A <- query(
     ll,
@@ -43,9 +42,9 @@ test_that("query works as expected", {
   expect_gt(nrow(q5B), nrow(q5A))
 
   # test ref to external object within query expression
-  age_unit_valid <- c("Years", "Months", "Weeks", "Days")
-  q6 <- query(ll, !age_unit %in% age_unit_valid, cols_base = id:site)
-  expect_true(all(!q6$value1 %in% age_unit_valid))
+  lab_result_valid <- c("Positive", "Negative", "Inc.", NA)
+  q6 <- query(ll, !lab_result %in% lab_result_valid, cols_base = id:site)
+  expect_true(all(!q6$value1 %in% lab_result_valid))
 
   # test pivot_long arg
   q7 <- query(ll, date_exit < date_admit, pivot_long = FALSE)

@@ -61,11 +61,11 @@ by `.x` are specified separately with argument `cols_dotx`.
 query(ll, .x > Sys.Date(), cols_dotx = starts_with("date"), cols_base = id:site)
 ```
 
-**E.g. 3.** Find non-valid values of `age_unit`.
+**E.g. 3.** Find non-valid values of `lab_result`.
 
 ```{r}
-age_unit_valid <- c("Years", "Months", "Weeks", "Days")
-query(ll, !age_unit %in% age_unit_valid, cols_base = id:site)
+lab_result_valid <- c("Positive", "Negative", "Inc.", NA)
+query(ll, !lab_result %in% lab_result_valid, cols_base = id:site)
 ```
 
 **E.g. 4.** Stack multiple queries on different variables.
@@ -75,22 +75,58 @@ multiple queries, the argument `cols_base` can be set for an entire session
 using option "queryr_cols_base".
 
 ```{r}
-# set argument `cols_base` for all subsequent queries
+# set argument `cols_base` for all subsequent queries (wrap in quote() if using
+# non-standard evaluation rather than a character vector)
 options(queryr_cols_base = quote(id:site))
 
 # stack multiple queries
 dplyr::bind_rows(
   .id = "query",
   # non-valid patient id
-  "IDENT_01" = query(ll, !grepl("^M[0-9]{3}", id)),
+  "IDENT_01" = query(ll, !grepl("^TC\\d{3}", id)),
   # date in future
   "DATES_01" = query(ll, .x > Sys.Date(), cols_dotx = starts_with("date")),
   # exit before admission
   "DATES_02" = query(ll, date_exit < date_admit),
   # non-valid value of age_unit
-  "FCTRS_01" = query(ll, !age_unit %in% age_unit_valid),
+  "FCTRS_01" = query(ll, !lab_result %in% lab_result_valid),
   # status 'Confirmed' but lab result not 'Positive'
   "LOGIC_01" = query(ll, status == "Confirmed" & !lab_result %in% "Positive")
 )
 ```
 
+### Queries relating to two data frames
+
+For these we'll introduce a second example dataset `sll`, a 'summary' linelist.
+Whereas the original linelist `ll` contains all patients presenting at treatment
+centres, the summary linelist `sll` contains only patients with status
+"Confirmed" or "Probable".
+
+
+**E.g. 1.** Find treatment centre IDs that appear in `ll` but not `sll`, and the
+corresponding patient status.
+
+```{r}
+query2(
+  ll,
+  sll,
+  cols_base1 = c(id, site, status),
+  join_type = "anti",
+  join_by = c("id" = "tc_id")
+)
+```
+
+**E.g. 2.** Find confirmed/probable patients in `ll` with different outcomes
+listed in `ll` vs `sll`.
+
+```{r}
+query2(
+  ll,
+  sll,
+  cond1 = status %in% c("Confirmed", "Probable"),
+  cols_base1 = id:site,
+  join_type = "inner",
+  join_by = c("id" = "tc_id"),
+  cond3 = outcome != sll_outcome
+)
+```

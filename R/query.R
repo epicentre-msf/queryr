@@ -121,11 +121,11 @@
 #' )
 #'
 #' # incorporate an external object into the query expression
-#' valid_age_units <- c("Years", "Months", "Weeks", "Days")
+#' lab_result_valid <- c("Positive", "Negative", "Inc.", NA)
 #'
 #' query(
 #'   ll,
-#'   !age_unit %in% valid_age_units,
+#'   !lab_result %in% lab_result_valid,
 #'   cols_base = id:site,
 #' )
 #'
@@ -260,7 +260,7 @@ query <- function(data,
 
 
 #' @noRd
-#' @importFrom dplyr select
+#' @importFrom dplyr select any_of bind_cols
 #' @importFrom rlang `!!` enquo
 query_ <- function(x,
                    cond,
@@ -268,12 +268,18 @@ query_ <- function(x,
                    as_chr,
                    pivot_long,
                    pivot_var,
-                   pivot_val) {
+                   pivot_val,
+                   cols_extra = NULL,
+                   vars_cond_extra = NULL) {
 
   cond <- parse(text = cond)
 
+  if (missing(cols_base)) {
+    cols_base <- NULL
+  }
+
   # parse query expression to find variable name also in `x`
-  vars_cond <- all.vars(substitute(cond))
+  vars_cond <- c(vars_cond_extra, all.vars(substitute(cond)))
   vars_cond <- intersect(vars_cond, names(x))
 
   # evaluate query expression
@@ -296,16 +302,16 @@ query_ <- function(x,
     out <- pivot_simple(out, pivot_var, pivot_val)
   }
 
-  # append base variables
-  if (!missing(cols_base)) {
-    out_id <- dplyr::select(xsub, !!cols_base)
-    out <- dplyr::bind_cols(out_id, out)
-  }
+  # combine cols_base, cols_extra, and cols referenced in cond
+  cols_add <- setdiff(cols_extra, names(out))
+  out_id <- dplyr::select(xsub, !!cols_base, dplyr::any_of(cols_add))
+  out <- dplyr::bind_cols(out_id, out)
 
   row.names(out) <- NULL
 
   return(out)
 }
+
 
 
 
