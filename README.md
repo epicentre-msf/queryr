@@ -8,7 +8,7 @@
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
 [![Travis build
-status](https://travis-ci.com/epicentre-msf/queryr.svg?branch=master)](https://travis-ci.com/epicentre-msf/queryr)
+status](https://travis-ci.org/epicentre-msf/queryr.svg?branch=master)](https://travis-ci.org/epicentre-msf/queryr)
 [![Codecov test
 coverage](https://codecov.io/gh/epicentre-msf/queryr/branch/master/graph/badge.svg)](https://codecov.io/gh/epicentre-msf/queryr?branch=master)
 <!-- badges: end -->
@@ -128,6 +128,18 @@ For these we’ll introduce a second example dataset `sll`, a ‘summary’
 linelist. Whereas the original linelist `ll` contains all patients
 presenting at treatment centres, the summary linelist `sll` contains
 only patients with status “Confirmed” or “Probable”.
+
+``` r
+data(sll)
+head(sll)
+#>    sll_id tc_admit tc_id tc_site sll_age sll_status sll_date_outcome sll_outcome
+#> 1 SLL_001      Yes TC932       B   61.00  Confirmed       2020-04-24        Died
+#> 2 SLL_002      Yes TC345    <NA>    0.67  Confirmed       2020-04-19        Died
+#> 3 SLL_003      Yes TC623       C   91.00  Confirmed       2020-04-30       Cured
+#> 4 SLL_004       No  <NA>    <NA>    0.50   Probable       2020-05-13        Died
+#> 5 SLL_005      Yes TC361       B   68.00  Confirmed       2020-04-02       Cured
+#> 6 SLL_006      Yes TC550       B   39.00   Probable       2010-05-13        Died
+```
 
 **E.g. 1.** Find treatment centre IDs that appear in `ll` but not `sll`,
 and the corresponding patient status.

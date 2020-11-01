@@ -16,7 +16,7 @@ options(digits = 4, width = 120)
 # queryr: Data validation queries with tidy, stackable output
 <!-- badges: start -->
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-[![Travis build status](https://travis-ci.com/epicentre-msf/queryr.svg?branch=master)](https://travis-ci.com/epicentre-msf/queryr)
+[![Travis build status](https://travis-ci.org/epicentre-msf/queryr.svg?branch=master)](https://travis-ci.org/epicentre-msf/queryr)
 [![Codecov test coverage](https://codecov.io/gh/epicentre-msf/queryr/branch/master/graph/badge.svg)](https://codecov.io/gh/epicentre-msf/queryr?branch=master)
 <!-- badges: end -->
 
@@ -102,6 +102,10 @@ Whereas the original linelist `ll` contains all patients presenting at treatment
 centres, the summary linelist `sll` contains only patients with status
 "Confirmed" or "Probable".
 
+```{r}
+data(sll)
+head(sll)
+```
 
 **E.g. 1.** Find treatment centre IDs that appear in `ll` but not `sll`, and the
 corresponding patient status.
