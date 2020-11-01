@@ -89,6 +89,21 @@ test_that("query2 works as expected", {
 
   expect_equal(nrow(q6), nrow(subset(ll, !status %in% "Confirmed")))
 
+
+  # test option queryr_cols_base
+  options(queryr_cols_base = quote(id:site))
+
+  q7 <- query2(
+    ll,
+    sll,
+    cols_base2 = sll_id,
+    join_type = "inner",
+    join_by = c("id" = "tc_id"),
+    cond3 = !outcome %in% "Died" & sll_outcome == "Died"
+  )
+
+  expect_true(all(c("id", "site") %in% names(q7)))
+
   # reset option queryr_cols_base to original value
   options(queryr_cols_base = queryr_cols_base_orig)
 
