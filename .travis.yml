@@ -10,7 +10,7 @@ r:
 # Operating systems to build on ------
 os:
   - linux
-  - osx
+  # - osx
 
 # Linux options ---------
 sudo: false
