@@ -32,3 +32,12 @@
 #' }
 "sll"
 
+
+#' Example set of queries to run on `ll` using [`query_vec`]
+#'
+#' @format A data.frame with 5 rows and 2 variables:
+#' \describe{
+#' \item{query_id}{Query IDs}
+#' \item{query}{Query expressions in string format}
+#' }
+"ll_queries"
