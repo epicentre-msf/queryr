@@ -206,8 +206,9 @@ extract_by <- function(x) {
 }
 
 
+#' @noRd
 #' @importFrom dplyr select
-#' @importFrom rlang !!
+#' @importFrom rlang `!!`
 selection_to_vec <- function(x, dat) {
   names(dplyr::select(dat, !!x))
 }
