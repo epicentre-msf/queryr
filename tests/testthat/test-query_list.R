@@ -1,3 +1,5 @@
+context("query_list")
+
 test_that("query_list works as expected", {
 
   queryr_cols_base_orig <- getOption("queryr_cols_base")
@@ -7,7 +9,6 @@ test_that("query_list works as expected", {
   data(sll)
 
   dat_list <- list(ipd = ll, icu = sll)
-
 
   # test simple query on single element
   q1 <- query_list(
@@ -31,7 +32,6 @@ test_that("query_list works as expected", {
   )
 
   expect_identical(q1, q2)
-
 
   # test query requiring join across elements
   q3 <- query_list(
@@ -73,4 +73,22 @@ test_that("query_list works as expected", {
   # reset option queryr_cols_base to original value
   options(queryr_cols_base = queryr_cols_base_orig)
 
+})
+
+
+
+test_that("query_list fails gracefully", {
+
+  data(ll)
+  data(sll)
+  dat_list <- list(ipd = ll, icu = sll)
+
+  # invalid argument element
+  expect_error(
+    query_list(
+      dat_list,
+      cond = age > 50,
+      element = "blahblah"
+    )
+  )
 })

@@ -51,7 +51,6 @@ query_list <- function(x,
                        pivot_val = "value",
                        as_chr = TRUE) {
 
-
   ## set cols_base
   opt_cols_base <- getOption("queryr_cols_base")
 
@@ -60,6 +59,35 @@ query_list <- function(x,
   }
 
   cols_base <- rlang::enquo(cols_base)
+
+  ## excecute query
+  query_list_(
+    x = x,
+    cond = deparse(substitute(cond)),
+    element = element,
+    cols_base = cols_base,
+    join_type = join_type,
+    join_by = join_by,
+    pivot_long = pivot_long,
+    pivot_var = pivot_var,
+    pivot_val = pivot_val,
+    as_chr = as_chr
+  )
+}
+
+
+
+#' @noRd
+query_list_ <- function(x,
+                        cond,
+                        element,
+                        cols_base,
+                        join_type,
+                        join_by,
+                        pivot_long,
+                        pivot_var,
+                        pivot_val,
+                        as_chr) {
 
   ## set join
   join_type <- match.arg(join_type, c("inner", "left"))
@@ -71,10 +99,17 @@ query_list <- function(x,
   )
 
   ## primary element
+  if (!is.numeric(element) & !element %in% names(x)) {
+    stop(
+      "Argument 'element' must be the name or integer index of a list element of 'x'",
+      call. = FALSE
+    )
+  }
+
   data <- x[[element]]
 
   ## join in relevant vars from other list elements (if any)
-  vars_cond <- all.vars(substitute(cond))
+  vars_cond <- all.vars(str2lang(cond))
   vars_external <- setdiff(vars_cond, names(data))
   vars_external_els <- vapply(vars_external, find_element, "", x = x)
 
@@ -87,7 +122,7 @@ query_list <- function(x,
   ## execute query
   query_(
     x = data,
-    cond = deparse(substitute(cond)),
+    cond = cond,
     cols_base = cols_base,
     as_chr = as_chr,
     pivot_long = pivot_long,

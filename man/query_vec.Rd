@@ -5,31 +5,51 @@
 \title{Data validation queries vectorized over multiple query expressions}
 \usage{
 query_vec(
-  data,
+  x,
   cond,
+  element,
   name,
   cols_base,
   name_col = "query_id",
+  join_type = "left",
+  join_by = NULL,
   pivot_var = "variable",
   pivot_val = "value",
   as_chr = TRUE
 )
 }
 \arguments{
-\item{data}{Data frame to query}
+\item{x}{A data frame or a list of data frames to query. If a single data
+frame will vectorize with \code{\link{query}}, whereas given a list of data frames
+will use \code{\link{query_list}}.}
 
 \item{cond}{Character vector of expressions to evaluate with respect to
-variables within \code{data}.}
+variables within \code{x}.}
+
+\item{element}{If \code{x} is a list of data frames, the names or integer indexes
+of the focal list element of \code{x} corresponding to each query expression
+(i.e. each element of \code{cond}). Only used if \code{x} is a list of data frames
+(see \code{\link{query_list}}).}
 
 \item{name}{(Optional) Character vector giving query names/IDs for each of
 the expressions within \code{cond}. If missing the expressions themselves (in
 string format) are used as names.}
 
-\item{cols_base}{(Optional) Tidy-selection of other columns within \code{data} to
-retain in the final output. Can be set for an entire session using option
-"queryr_cols_base", e.g. \code{options(queryr_cols_base = quote(id:site))}.}
+\item{cols_base}{(Optional) Tidy-selection of other columns within \code{x} (or
+\code{x[[element]]}) to retain in the final output. Can be set for an entire
+session using option "queryr_cols_base", e.g. \code{options(queryr_cols_base = quote(id:site))}.}
 
 \item{name_col}{Column name for the query names/IDs. Defaults to "query_id".}
+
+\item{join_type}{If \code{x} is a list of data frames and \code{cond} references
+variables within elements of \code{x} apart from \code{x[[element]]}, what type of
+join should be used to join the relevant elements? Options are "left" (the
+default) and "inner". Based on dplyr \code{\link[dplyr]{join}} types.}
+
+\item{join_by}{A character vector of variables to join by. If the join key
+columns have different names in \code{x[[element]]} and \code{x[[other]]}, use a
+named vector. For example, \code{join_by = c("a" = "b")} will match
+\code{x[[element]]$a} to \code{x[[other]]$b}.}
 
 \item{pivot_var}{Prefix for pivoted variable column(s). Defaults to
 "variable".}
@@ -51,12 +71,12 @@ Returned columns include:
 }
 }
 \description{
-Data validation queries as in \code{\link{query}}, but vectorized over a set of query
-expressions in string format (and optionally a corresponding vector of query
-names/IDs). Results of the multiple queries are stacked and returned in a
-single tidy data frame, with columns referenced in the query expressions
-pivoted to long-form (e.g. "variable1", "value1", "variable2", "value2",
-...).
+Data validation queries with \code{\link{query}} or \code{\link{query_list}}, but vectorized over
+a set of query expressions in string format (and optionally a corresponding
+vector of query names/IDs). Results of the multiple queries are stacked and
+returned in a single tidy data frame, with columns referenced in the query
+expressions pivoted to long-form (e.g. "variable1", "value1", "variable2",
+"value2", ...).
 }
 \examples{
 data(ll)          # example dataset, an epidemiological linelist
