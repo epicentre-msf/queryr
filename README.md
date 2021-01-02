@@ -7,10 +7,10 @@
 
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-[![Travis build
-status](https://travis-ci.org/epicentre-msf/queryr.svg?branch=master)](https://travis-ci.org/epicentre-msf/queryr)
+[![R-CMD-check](https://github.com/epicentre-msf/queryr/workflows/R-CMD-check/badge.svg)](https://github.com/epicentre-msf/queryr/actions)
 [![Codecov test
 coverage](https://codecov.io/gh/epicentre-msf/queryr/branch/master/graph/badge.svg)](https://codecov.io/gh/epicentre-msf/queryr?branch=master)
+
 <!-- badges: end -->
 
 ### Installation
