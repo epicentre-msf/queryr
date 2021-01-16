@@ -183,7 +183,7 @@ query2 <- function(data1,
   query_(
     qjoin,
     cond = deparse(substitute(cond3)),
-    cols_base = cols_enquo_base1,
+    cols_base = selection_to_vec(cols_enquo_base1, data1),
     pivot_long = pivot_long,
     pivot_var = pivot_var,
     pivot_val = pivot_val,
