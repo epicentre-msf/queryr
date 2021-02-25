@@ -224,7 +224,7 @@ query <- function(data,
 
       subqueries[[i]] <- query_(
         data,
-        cond = deparse(cond_swap),
+        cond = deparse(cond_swap, width.cutoff = 500L),
         cols_base = cols_base,
         as_chr = as_chr,
         pivot_long = pivot_long,
@@ -240,7 +240,7 @@ query <- function(data,
 
     out <- query_(
       data,
-      cond = deparse(substitute(cond)),
+      cond = deparse(substitute(cond), width.cutoff = 500L),
       cols_base = cols_base,
       as_chr = as_chr,
       pivot_long = pivot_long,
@@ -336,4 +336,3 @@ pivot_simple <- function(df,
 
   cbind(df_vals, df_vars)[,column_order, drop = FALSE]
 }
-

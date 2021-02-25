@@ -63,7 +63,7 @@ query_list <- function(x,
   ## excecute query
   query_list_(
     x = x,
-    cond = deparse1(substitute(cond)),
+    cond = deparse(substitute(cond), width.cutoff = 500L),
     element = element,
     cols_base = cols_base,
     join_type = join_type,

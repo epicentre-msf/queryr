@@ -153,7 +153,7 @@ query2 <- function(data1,
   ## run individual queries on data1 and data2, respectively
   q1 <- query_(
     data1,
-    cond = deparse(substitute(cond1)),
+    cond = deparse(substitute(cond1), width.cutoff = 500L),
     cols_base = cols_enquo_base1,
     pivot_long = FALSE,
     as_chr = FALSE,
@@ -162,7 +162,7 @@ query2 <- function(data1,
 
   q2 <- query_(
     data2,
-    cond = deparse(substitute(cond2)),
+    cond = deparse(substitute(cond2), width.cutoff = 500L),
     cols_base = cols_enquo_base2,
     pivot_long = FALSE,
     as_chr = FALSE,
@@ -182,7 +182,7 @@ query2 <- function(data1,
   ## execute cond3
   query_(
     qjoin,
-    cond = deparse(substitute(cond3)),
+    cond = deparse(substitute(cond3), width.cutoff = 500L),
     cols_base = selection_to_vec(cols_enquo_base1, data1),
     pivot_long = pivot_long,
     pivot_var = pivot_var,
