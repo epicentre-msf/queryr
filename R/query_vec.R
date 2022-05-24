@@ -85,7 +85,6 @@ query_vec <- function(x,
     cols_base <- opt_cols_base
   }
 
-
   cols_base <- rlang::enquo(cols_base)
 
   ## arg validation
@@ -155,18 +154,10 @@ query_vec <- function(x,
     names(out_list) <- name
   }
 
-  ## remove pivot var/val cols from empty list elements to avoid empty columns
-  # returned by dplyr::bind_rows
-  out_list <- lapply(
-    out_list,
-    remove_empty_cols,
-    pivot_var = pivot_var,
-    pivot_val = pivot_val
-  )
-
   ## bind list elements and return
   dplyr::bind_rows(out_list, .id = name_col)
 }
+
 
 
 #' @noRd
@@ -174,14 +165,3 @@ is_list_of_dfs <- function(x) {
   all(vapply(x, function(x) "data.frame" %in% class(x), FALSE))
 }
 
-
-#' @noRd
-remove_empty_cols <- function(x, pivot_var, pivot_val) {
-  if (nrow(x) == 0) {
-    reg1 <- paste0("^", pivot_var, "[[:digit:]]")
-    reg2 <- paste0("^", pivot_val, "[[:digit:]]")
-    reg_full <- paste(reg1, reg2, sep = "|")
-    x <- x[,!grepl(reg_full, names(x)), drop = FALSE]
-  }
-  x
-}
