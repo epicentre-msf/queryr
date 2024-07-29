@@ -28,11 +28,15 @@
 #' @param join_type If `x` is a list of data frames and `cond` references
 #'   variables within elements of `x` apart from `x[[element]]`, what type of
 #'   join should be used to join the relevant elements? Options are "left" (the
-#'   default) and "inner". Based on dplyr \code{\link[dplyr]{join}} types.
-#' @param join_by A character vector of variables to join by. If the join key
-#'   columns have different names in `x[[element]]` and `x[[other]]`, use a
-#'   named vector. For example, `join_by = c("a" = "b")` will match
-#'   `x[[element]]$a` to `x[[other]]$b`.
+#'   default) and "inner". Based on dplyr \code{\link[dplyr]{join}} types. Can
+#'   specify different join types for different query expressions by passing a
+#'   vector the same length as `cond`.
+#' @param join_by A character vector of variables to join by, or list of vectors
+#'   the same length as `cond`. If the join key columns have different names in
+#'   `x[[element]]` and `x[[other]]`, use a named vector. For example, `join_by
+#'   = c("a" = "b")` will match `x[[element]]$a` to `x[[other]]$b`. Can specify
+#'   different join columns for different query expressions by passing a _list_
+#'   of vectors the same length as `cond`.
 #' @param pivot_var Prefix for pivoted variable column(s). Defaults to
 #'   "variable".
 #' @param pivot_val Prefix for pivoted value column(s). Defaults to "value".
@@ -115,23 +119,51 @@ query_vec <- function(x,
 
   ## vectorize with either query_() or query_list_(), depending on arg x
   if (is_list_of_dfs(x)) {
-    ## vectorize query_list_() over cond and element
-    out_list <- mapply(
-      query_list_,
-      cond = cond,
-      element = element,
-      MoreArgs = list(
-        x = x,
-        cols_base = cols_base,
+    ## vectorize query_list_() over cond, element, join_type, and join_by
+
+    if (is.list(join_by) && length(join_by) > 1) {
+
+      out_list <- mapply(
+        query_list_,
+        cond = cond,
+        element = element,
         join_type = join_type,
         join_by = join_by,
-        pivot_long = TRUE,
-        pivot_var = pivot_var,
-        pivot_val = pivot_val,
-        as_chr = as_chr
-      ),
-      SIMPLIFY = FALSE
-    )
+        MoreArgs = list(
+          x = x,
+          cols_base = cols_base,
+          pivot_long = TRUE,
+          pivot_var = pivot_var,
+          pivot_val = pivot_val,
+          as_chr = as_chr
+        ),
+        SIMPLIFY = FALSE
+      )
+
+    } else {
+
+      # if (length(join_type) == 1) join_type <- rep(join_type, length(cond))
+      # if (length(join_by) == 1)   join_by   <- rep(join_by,   length(cond))
+
+      out_list <- mapply(
+        query_list_,
+        cond = cond,
+        element = element,
+        MoreArgs = list(
+          x = x,
+          cols_base = cols_base,
+          join_type = join_type,
+          join_by = join_by,
+          pivot_long = TRUE,
+          pivot_var = pivot_var,
+          pivot_val = pivot_val,
+          as_chr = as_chr
+        ),
+        SIMPLIFY = FALSE
+      )
+
+    }
+
   } else {
     ## vectorize query_() over cond
     out_list <- mapply(

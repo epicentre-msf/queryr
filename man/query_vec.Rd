@@ -44,12 +44,15 @@ session using option "queryr_cols_base", e.g. \code{options(queryr_cols_base = q
 \item{join_type}{If \code{x} is a list of data frames and \code{cond} references
 variables within elements of \code{x} apart from \code{x[[element]]}, what type of
 join should be used to join the relevant elements? Options are "left" (the
-default) and "inner". Based on dplyr \code{\link[dplyr]{join}} types.}
+default) and "inner". Based on dplyr \code{\link[dplyr]{join}} types. Can
+specify different join types for different query expressions by passing a
+vector the same length as \code{cond}.}
 
-\item{join_by}{A character vector of variables to join by. If the join key
-columns have different names in \code{x[[element]]} and \code{x[[other]]}, use a
-named vector. For example, \code{join_by = c("a" = "b")} will match
-\code{x[[element]]$a} to \code{x[[other]]$b}.}
+\item{join_by}{A character vector of variables to join by, or list of vectors
+the same length as \code{cond}. If the join key columns have different names in
+\code{x[[element]]} and \code{x[[other]]}, use a named vector. For example, \code{join_by = c("a" = "b")} will match \code{x[[element]]$a} to \code{x[[other]]$b}. Can specify
+different join columns for different query expressions by passing a \emph{list}
+of vectors the same length as \code{cond}.}
 
 \item{pivot_var}{Prefix for pivoted variable column(s). Defaults to
 "variable".}
