@@ -178,9 +178,14 @@ query <- function(data,
 
     # evaluate cols_dotx
     cols_dotx <- names(dplyr::select(data, !!enquo(cols_dotx)))
+    starts_with_underscore_x <- grepl("^_", cols_dotx)
+    cols_dotx[starts_with_underscore_x] <- paste0("`", cols_dotx[starts_with_underscore_x], "`")
+
 
     if (has_doty) {
       cols_doty <- names(dplyr::select(data, !!enquo(cols_doty)))
+      starts_with_underscore_y <- grepl("^_", cols_doty)
+      cols_doty[starts_with_underscore_y] <- paste0("`", cols_doty[starts_with_underscore_y], "`")
 
       if (crossed) {
         cols_exp <- expand.grid(

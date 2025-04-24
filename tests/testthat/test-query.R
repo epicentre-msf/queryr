@@ -71,6 +71,35 @@ test_that("query works as expected", {
   q12 <- query(ll, date_exit < date_admit)
   expect_true(all(c("id", "site") %in% names(q12)))
 
+  # test with dotx and/or doty selectors that begin with underscore (epicentre-msf/dbc#6)
+  dat_underscores <- data.frame(
+    "_id" = 1:3,
+    "_x1" = 1:3,
+    "_x2" = 1:3,
+    "_y1" = 1:3,
+    "_y2" = 1:3,
+    check.names = FALSE
+  )
+
+  q13 <- query(
+    dat_underscores,
+    .x > 2,
+    cols_dotx = starts_with("_x"),
+    cols_base = "_id"
+  )
+
+  expect_equal(nrow(q13), 2)
+
+  q14 <- query(
+    dat_underscores,
+    .x + .y > 2,
+    cols_dotx = starts_with("_x"),
+    cols_doty = starts_with("_y"),
+    cols_base = "_id"
+  )
+
+  expect_equal(nrow(q14), 4)
+
   # reset option queryr_cols_base to original value
   options(queryr_cols_base = queryr_cols_base_orig)
 })
